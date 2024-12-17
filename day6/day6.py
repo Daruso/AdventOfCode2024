@@ -63,9 +63,7 @@ def move(position, direction):
     visited.add((position, direction))
     newLocation = tuple(map(sum, zip(position, direction)))
 
-    if not (0 <= newLocation[1] <= gridHeight and 0 <= newLocation[0] < gridLength): # return out of bounds location to stop while loop
-        grid[position[1]][position[0]] = 'X'
-        grid[newLocation[1]][newLocation[0]] = 'X'
+    if not (0 <= newLocation[1] < gridHeight and 0 <= newLocation[0] < gridLength): # return out of bounds location to stop while loop
         return newLocation, direction
     
     if grid[newLocation[1]][newLocation[0]] == '#': # do not move, only rotate
@@ -74,14 +72,13 @@ def move(position, direction):
         return position, direction   
 
     else: # only here should we move
-        grid[position[1]][position[0]] = 'X'
         return newLocation, direction
 
 def movementLoop(guardPos, guardDirection):
     while 0 < guardPos[1] < gridHeight and 0 < guardPos[0] < gridLength and (guardPos, guardDirection) not in visited:
         guardPos, guardDirection = move(guardPos, guardDirection)
-        # print(guardPos)
-    return {pos for pos, dir in visited}
+    return (guardPos, guardDirection) in visited
+
 f = open('day6\\input.txt')
 
 grid = []
@@ -111,12 +108,15 @@ gridHeight = yCounter
 
 movementLoop(guardPos, guardDirection)
 
-for pos in visited:
+originalVisited = visited.copy()
+
+for pos in originalVisited:
     if pos == originalGuardPos:
         break
-    grid[pos[1]][pos[0]] = '#'
-    movementLoop(guardPos, guardDirection)
+    grid[pos[0][1]][pos[0][0]] = '#'
+    path = movementLoop(guardPos, guardDirection)
     grid = originalGrid.copy()
+    visited.clear()
     
 print("Finished, final position: ", guardPos)
 print(runningTotal)
