@@ -37,7 +37,7 @@ def concat(a, b):
 f = open('day7\\input.txt')
 
 operators = {add,mul, concat}
-runningTotal = 0
+running_total = 0
 
 for line in f:
     key, values = line[0:-1].split(':')
@@ -54,7 +54,7 @@ for line in f:
 
         # compare the value of the equation to the key
         if total == key:
-            runningTotal += key
+            running_total += key
             break
 
-print(runningTotal)
+print(running_total)
