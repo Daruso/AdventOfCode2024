@@ -56,6 +56,34 @@
 
 # part 2
 
+def original_move(position, direction, visited):
+    newLocation = tuple(map(sum, zip(position, direction)))
+    # print("Newlocation, direction:", newLocation, direction)
+    # print("Obstacle? ", grid[newLocation[1]][newLocation[0]])
+    if not (0 <= newLocation[1] < grid_height and 0 <= newLocation[0] <= grid_length): # return out of bounds location to stop while loop
+        grid[position[1]][position[0]] = 'X'
+        # grid[newLocation[1]][newLocation[0]] = 'X'
+        # visited.add((newLocation, direction))
+        return newLocation, direction
+    
+    if grid[newLocation[1]][newLocation[0]] == '#': # do not move, only rotate
+        direction = rotate_counter_clockwise(direction)
+        visited.add((position, direction))
+
+        return position, direction
+        
+    else: # only here should we move
+        grid[position[1]][position[0]] = 'X'
+        visited.add((newLocation, direction))
+
+        return newLocation, direction
+
+def original_movement_loop(guardPos, guardDirection):
+    visited = set()
+    while 0 < guardPos[1] < grid_height and 0 < guardPos[0] < grid_length:
+        guardPos, guardDirection = original_move(guardPos, guardDirection, visited)
+    return visited
+
 def rotate_counter_clockwise(direction):
     return (-direction[1], direction[0])
 
@@ -63,7 +91,7 @@ def move(position, direction):
     new_location = tuple(map(sum, zip(position, direction)))
 
     if not (0 <= new_location[1] < grid_height and 0 <= new_location[0] < grid_length): # return out of bounds location to stop while loop
-        return new_location, direction
+        return position, direction
     
     if grid[new_location[1]][new_location[0]] == '#': # do not move, only rotate
         direction = rotate_counter_clockwise(direction)
@@ -75,12 +103,11 @@ def move(position, direction):
 
 def movement_loop(guard_pos, guard_direction):
     visited = set()
-    while (guard_pos, guard_direction) not in visited:
-        guard_pos, guard_direction = move(guard_pos, guard_direction)
-        if (guard_pos, guard_direction) in visited:
-            break
+    while (guard_pos, guard_direction) not in visited and 0 <= guard_pos[1] < grid_height and 0 <= guard_pos[0] < grid_length:
         visited.add((guard_pos, guard_direction))
+        guard_pos, guard_direction = move(guard_pos, guard_direction)
         
+    print((guard_pos, guard_direction) in visited)
     return ((guard_pos, guard_direction) in visited), visited # return True if loop is found (visited location again), also return visited for original loop
 
 f = open('day6\\input.txt')
@@ -101,6 +128,7 @@ for line in f:
     if ('^' in line):
         guard_pos = (line.index('^'), y_counter)
         original_guard_pos = guard_pos
+        print(guard_pos)
     y_counter +=1
 
 original_grid = grid.copy()
@@ -109,13 +137,20 @@ grid_length = len(grid[0])-1
 # grid_length = len(grid[0])
 grid_height = y_counter
 
-original_visited = movement_loop(guard_pos, guard_direction)[1]
+original_visited = original_movement_loop(guard_pos, guard_direction)
+print("Original visited: ", original_visited)
 
-for pos in original_visited:
-    if pos == original_guard_pos:
-        break
-    grid[pos[0][1]][pos[0][0]] = '#'
+
+for pos, dir in original_visited:
+    # if pos == original_guard_pos:
+        # continue
+    grid[pos[1]][pos[0]] = '#'
+    print("Exploring loop: ", pos)
+    # print(grid)
     running_total += movement_loop(guard_pos, guard_direction)[0]
+    # reset the grid by copying the original grid lists
     grid = original_grid.copy()
+    for index in range(len(original_grid)):
+        grid[index] = original_grid[index].copy()
     
 print(running_total)
